@@ -5,6 +5,7 @@ from django.conf.urls import patterns
 urlpatterns = patterns(
     'home_application.views',
     (r'^$', 'home'),
+    (r'^api/test$', 'test'),
     (r'^search_sys_info$', 'search_sys_info'),
     (r'^add_sys$', 'add_sys'),
     (r'^modify_sys$', 'modify_sys'),

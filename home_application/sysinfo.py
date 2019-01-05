@@ -6,6 +6,10 @@ from common.log import logger
 from common.mymako import render_json
 
 
+def test(request):
+    return render_json({"username":request.user.username,'result':'ok'})
+
+
 def search_sys_info(request):
     try:
         username = request.user.username
