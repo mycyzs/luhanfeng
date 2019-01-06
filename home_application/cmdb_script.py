@@ -12,34 +12,39 @@ from conf.default import APP_ID, APP_TOKEN, PROJECT_ROOT
 
 
 # 获取脚本任务Log
-def get_ip_log_content(client, username, task_id, i=1):
+def get_ip_log_content(client, username, task_id, biz_id,i=1):
     kwargs = {
         "app_code": APP_ID,
         "app_secret": APP_TOKEN,
         "username": username,
-        "task_instance_id": task_id
+        "job_instance_id": task_id,
+        'bk_biz_id':biz_id
     }
     result = client.job.get_task_ip_log(kwargs)
     if result["result"]:
-        if result["data"][0]["isFinished"]:
+        if result["data"][0]["is_finished"]:
             ip_log_content = []
-            for i in result["data"][0]["stepAnalyseResult"]:
-                if i["resultType"] == 9:
-                    ip_log_content.extend([{"result": True, "ip": str(j["ip"]), "logContent": j["logContent"]} for j in
-                                           i["ipLogContent"]])
+            for i in result["data"][0]["step_results"]:
+                if i["ip_status"] == 9:
+                    result_op = True
                 else:
-                    ip_log_content.extend(
-                        [{"result": False, "ip": str(j["ip"]), "logContent": i["resultTypeText"], "detail": j["logContent"]} for j in
-                         i["ipLogContent"]])
-            return render_json({"result": True, "data": ip_log_content})
+                    result_op = False
+                for z in i['ip_logs']:
+                    ip_log_content.append({
+                        'result':result_op,
+                        'ip':z['ip'],
+                        'bk_cloud_id':z['bk_cloud_id'],
+                        'log_content':z['log_content'],
+                    })
+            return {"result": True, "data": ip_log_content}
         else:
             time.sleep(1)
-            return get_ip_log_content(client, username, task_id)
+            return get_ip_log_content(client, username, task_id,kwargs['bk_biz_id'])
     else:
         i += 1
         if i < 5:
             time.sleep(1)
-            return get_ip_log_content(client, username, task_id, i)
+            return get_ip_log_content(client, username, task_id,kwargs['bk_biz_id'])
         else:
             err_msg = "get_logContent_timeout;task_id:%s;err_msg:%s" % (task_id, result["message"])
 
@@ -48,27 +53,25 @@ def get_ip_log_content(client, username, task_id, i=1):
 
 
 # 执行脚本接口
-def install_mysql_by_script(username, instance_info, script_content, script_type=1, script_timeout=600):
+def install_mysql_by_script(username, app_id,app_list, script_content, script_type=1, script_timeout=600):
     client = get_client_by_user(username)
+    #   app_list=[{'ip':'192.168.165.51','bk_cloud_id':'2'}]
     kwargs = {
-        "app_code": APP_ID,
-        "app_secret": APP_TOKEN,
-        "app_id": instance_info['app_id'],
-        "username": username,
-        "content": base64.b64encode(script_content),
-        "ip_list": [{
-            "ip": instance_info['ip'],
-            "bk_cloud_id": instance_info['source']
-        }],
-        "type": script_type,
+         "bk_app_code": APP_ID,
+        "bk_app_secret": APP_TOKEN,
+        "bk_biz_id": app_id,
+        "bk_username": username,
+        "script_content": base64.b64encode(script_content),
+        "ip_list": app_list,
+        "script_type": script_type,
         "account": 'root',
         "script_timeout": script_timeout
     }
     result = client.job.fast_execute_script(kwargs)
     if result["result"]:
-        task_id = result["data"]["taskInstanceId"]
+        task_id = result["data"]["job_instance_id"]
         time.sleep(2)
-        return get_ip_log_content(client, username, task_id)
+        return get_ip_log_content(client, username, task_id, app_id)
     else:
         return {"result": False, "data": result["message"]}
 

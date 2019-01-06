@@ -194,6 +194,8 @@ def search_all_host(request):
     except Exception as e:
         logger.error(e)
 
+os_type = {'1':'Linux','2':'Windows'}
+
 
 # 根据ip查询主机信息
 def search_host_by_ip(request):
@@ -204,7 +206,17 @@ def search_host_by_ip(request):
             "bk_app_secret": APP_TOKEN,
             "bk_username": 'admin',
             "ip" : {"flag": "bk_host_innerip|bk_host_outerip","exact": 1,"data": ['192.168.165.51']},
-            "condition": []
+            "condition": [
+                {
+                    "bk_obj_id": "biz",
+                    "fields": [
+                        "default",
+                        "bk_biz_id",
+                        "bk_biz_name",
+                    ],
+                    "condition": []
+                }
+            ]
         }
         result = client.cc.search_host(kwargs)
         d={}

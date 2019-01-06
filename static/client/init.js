@@ -28,4 +28,11 @@ app.config(["$stateProvider", "$urlRouterProvider", "$httpProvider", function ($
             templateUrl: static_url + "client/views/sysconfig.html"
         })
 
+        .state('my_test', {
+            url: "/my_test?id",
+            controller: "my_test",
+            templateUrl: static_url + "client/views/my_test.html"
+        })
+
+
 }]);

@@ -144,6 +144,7 @@ controllers.controller("home", ["$scope", "loading", "$modal", "confirmModal", "
                 cellTemplate: '<div style="width:100%;padding-top:5px;text-align: center">' +
                 '<span style="cursor: pointer" class="btn btn-xs btn-primary" ng-click="modify_sys(row)">修改</span>&emsp;' +
                 '<span style="cursor: pointer" class="btn btn-xs btn-danger" ng-click="delete_sys(row)">删除</span>' +
+                '<span style="cursor: pointer" class="btn btn-xs btn-danger" ui-sref="my_test({id:row.entity.id})">跳转</span>' +
                 '</div>'
             }
         ]
